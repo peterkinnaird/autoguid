@@ -8,8 +8,15 @@ namespace :autoguid do
     end
 	end
   namespace :migrate do
-    task :up do
-      AutoGuidMigrator.new.up
+    task :up => :environment do
+      init = Initializer.new
+      init.config
+      init.up
+    end
+    task :drop_all => :environment do
+      init = Initializer.new
+      init.config
+      init.drop_all
     end
   end
 end
