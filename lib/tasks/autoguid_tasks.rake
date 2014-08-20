@@ -18,5 +18,15 @@ namespace :autoguid do
       init.config
       init.drop_all
     end
+    task :backfill => :environment do
+      require 'autoguid'
+      Rails.application.eager_load!
+      ActiveRecord::Base.direct_descendants.each do |model|
+        puts model
+        model.reset_column_information
+        Autoguid.backfill(model) if model.columns_hash['guid']
+      end
+    end
   end
+
 end

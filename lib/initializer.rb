@@ -8,8 +8,8 @@ class Initializer
 		@migrator.config = Hash.new
 		# @migrator.config[:all] = true
 		# @migrator.config[:whitelist] = ['User','Office']
-		@migrator.config[:blacklist] = ['User']
-		@migrator.config[:indices] = true
+		# @migrator.config[:blacklist] = ['User']
+		# @migrator.config[:indices] = true
 	end
 
 	def up
