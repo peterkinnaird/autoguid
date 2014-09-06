@@ -15,7 +15,14 @@ Gem::Specification.new do |s|
    your models, a whitelisted set of models, or a blacklisted set.
    Indices are automatically created based on a configuration option.
    There's also a rake task that will backfill these uuids into resources that
-   have already been created."
+   have already been created.
+   To get started, include the gem file, run `bundle install`, then run
+   `rake autoguid:install`. From there, edit the config/initializers/autoguid.rb
+   file to specifcy your configuration. Next, migrate your tables with
+   `rake autoguid:migrate:up` and `rake autoguid:migrate:backfill` as required.
+   `rake autoguid:migrate:drop_all` will drop all autoguid generated columns and
+   the data in them. You can always change the config/initializers/autoguid.rb file
+   and rerun `rake autoguid:migrate:up` to add autoguid to new models."
   s.license     = "MIT"
 
   s.files = Dir["{app,config,db,lib}/**/*", "MIT-LICENSE", "Rakefile", "README.rdoc"]
