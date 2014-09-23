@@ -3,28 +3,23 @@ class Migrator < ActiveRecord::Migration
     attr_accessor :config
 
     def up
-      puts config
-      Rails.application.eager_load!
-      models = Array.new
-      whitelist = Array.new
-      if ( @config[:all] )
-        whitelist = ActiveRecord::Base.direct_descendants if @config[:all]
-      elsif ( @config[:whitelist] )
+      puts 'Found config' + config.to_s
+      whitelist = Migrator.all_models if @config[:all] or @config[:blacklist]
+      if ( @config[:whitelist] )
         puts "Got into Whitelist"
-        models = ActiveRecord::Base.direct_descendants
-        models.each do |m|
+        whitelist = Array.new
+        Migrator.all_models.each do |m|
           puts "Checking for model " + m.name + " in whitelist "
           whitelist.push(m) if @config[:whitelist].include?(m.name)
         end
       elsif ( @config[:blacklist] )
         puts "Processing by blacklist"
-        whitelist = ActiveRecord::Base.direct_descendants
         whitelist.each do |m|
           puts "Checking for model " + m.name + " in blacklist "
           whitelist.delete(m) if @config[:blacklist].include?(m.name)
         end
       end
-      puts whitelist
+      puts "whitelist"
       whitelist.each do |model|
         puts "Processing " + model.name
         model.reset_column_information
@@ -34,12 +29,23 @@ class Migrator < ActiveRecord::Migration
     end
 
     def down
-      Rails.application.eager_load!
-      ActiveRecord::Base.direct_descendants.each do |model|
+      Migrator.all_models.each do |model|
         model.reset_column_information
         remove_index(model, :guid) if index_exists?(model, :guid)
         remove_column(model, :guid) if column_exists?(model, :guid)
       end
+    end
+
+    def self.all_models
+      Rails.application.eager_load!
+      mods = Array.new
+      Module.constants.select do |constant_name|
+        constant = eval( constant_name.to_s )
+        if not constant.nil? and constant.is_a? Class and constant.superclass == ActiveRecord::Base
+          mods.push(constant)
+        end
+      end
+      return mods
     end
 
 end

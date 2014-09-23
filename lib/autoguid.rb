@@ -14,16 +14,15 @@ module Autoguid
     end
 
     def generate_autoguid
-      uuid = SecureRandom.uuid
       name = self.is_a?(Module) ? name : self.class.name
-      return name + '-' + uuid
+      return name + '-' + SecureRandom.uuid
     end
 
-    def backfill(model)
-      puts "Backfilling " + model
+    def self.backfill(model)
+      puts 'Backfilling ' + model.name
       model.all.each do |row|
-        puts "Found a row"
-        row.guid = generate_autoguid
+        puts 'Updating a record'
+        row.guid = row.generate_autoguid
         row.save
       end
     end
