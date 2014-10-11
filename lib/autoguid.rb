@@ -21,9 +21,11 @@ module Autoguid
     def self.backfill(model)
       puts 'Backfilling ' + model.name
       model.all.each do |row|
-        puts 'Updating a record'
-        row.guid = row.generate_autoguid
-        row.save
+        if row.guid.nil?
+          puts 'Updating a record'
+          row.guid = row.generate_autoguid
+          row.save
+        end
       end
     end
 end

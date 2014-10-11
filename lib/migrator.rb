@@ -3,28 +3,40 @@ class Migrator < ActiveRecord::Migration
     attr_accessor :config
 
     def up
-      puts 'Found config' + config.to_s
-      whitelist = Migrator.all_models if @config[:all] or @config[:blacklist]
-      if ( @config[:whitelist] )
-        puts "Got into Whitelist"
-        whitelist = Array.new
-        Migrator.all_models.each do |m|
-          puts "Checking for model " + m.name + " in whitelist "
-          whitelist.push(m) if @config[:whitelist].include?(m.name)
+      begin
+        puts 'Found config' + @config.to_s
+        raise "Autoguid configuration is incomplete" unless @config[:all] || (@config[:whitelist].nil? ^ @config[:blacklist].nil?)
+        raise "Specifying both whitelist & blacklist is not supported." if @config[:whitelist] && @config[:blacklist]
+        whitelist = Migrator.all_models if @config[:all] or @config[:blacklist]
+        if ( @config[:whitelist] )
+          puts "Got into Whitelist"
+          whitelist = Array.new
+          Migrator.all_models.each do |m|
+            puts "Checking for model " + m.name + " in whitelist "
+            whitelist.push(m) if @config[:whitelist].include?(m.name)
+          end
+        elsif ( @config[:blacklist] )
+          puts "Processing by blacklist"
+          whitelist.each do |m|
+            puts "Checking for model " + m.name + " in blacklist "
+            whitelist.delete(m) if @config[:blacklist].include?(m.name)
+          end
         end
-      elsif ( @config[:blacklist] )
-        puts "Processing by blacklist"
-        whitelist.each do |m|
-          puts "Checking for model " + m.name + " in blacklist "
-          whitelist.delete(m) if @config[:blacklist].include?(m.name)
+        puts "whitelist"
+        whitelist.each do |model|
+          puts "Processing " + model.name
+          puts "Are you sure you want to add/update guid column on " + model.name + "? (y/n)"
+          input = STDIN.gets.strip
+          if input == 'y'
+            model.reset_column_information
+            add_column(model, :guid, :string, :unique => true) unless column_exists?(model, :guid)
+            add_index(model, :guid) if @config[:indices] && !index_exists?(model, :guid)
+          else
+            puts model.name + " skipped."
+          end
         end
-      end
-      puts "whitelist"
-      whitelist.each do |model|
-        puts "Processing " + model.name
-        model.reset_column_information
-        add_column(model, :guid, :string, :unique => true) unless column_exists?(model, :guid)
-        add_index(model, :guid) if @config[:indices] && !index_exists?(model, :guid)
+      rescue Exception => e
+        puts e.message
       end
     end
 
