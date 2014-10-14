@@ -17,10 +17,7 @@ class Migrator < ActiveRecord::Migration
           end
         elsif ( @config[:blacklist] )
           puts "Processing by blacklist"
-          whitelist.each do |m|
-            puts "Checking for model " + m.name + " in blacklist "
-            whitelist.delete(m) if @config[:blacklist].include?(m.name)
-          end
+          whitelist.delete_if {|m| @config[:blacklist].include?(m.name)}
         end
         puts "whitelist"
         whitelist.each do |model|
